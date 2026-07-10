@@ -1,11 +1,19 @@
 import streamlit as st
-import numpy as np
 import matplotlib.pyplot as plt
 
-st.set_page_config(page_title="Fitness App Growth Simulator", layout="centered")
+# -----------------------------
+# Page Configuration
+# -----------------------------
+st.set_page_config(
+    page_title="Fitness App Growth Simulator",
+    layout="centered"
+)
 
 st.title("📈 Fitness App User Growth Simulator")
-st.write("Simulate Daily Active Users (DAU), New Users, and Dropouts with or without a retention boost.")
+st.write(
+    "Simulate Daily Active Users (DAU), New Users, and Dropouts "
+    "with or without a retention boost."
+)
 
 # -----------------------------
 # Function
@@ -15,7 +23,7 @@ def fitness_app_growth(
     initial_new_users,
     growth_rate,
     retention_rate,
-    days=4,
+    days,
     retention_boost_day=None,
     boost_amount=0.1,
 ):
@@ -27,14 +35,21 @@ def fitness_app_growth(
 
         current_retention = retention_rate
 
-        if retention_boost_day is not None and t == retention_boost_day:
-            current_retention = min(1.0, retention_rate + boost_amount)
+        if (
+            retention_boost_day is not None
+            and t == retention_boost_day
+        ):
+            current_retention = min(
+                1.0,
+                retention_rate + boost_amount
+            )
 
         new_users_t = new_users[-1] * growth_rate
         new_users.append(new_users_t)
 
         retained = dau[-1] * current_retention
         dropouts_t = dau[-1] * (1 - current_retention)
+
         dau_t = retained + new_users_t
 
         dau.append(dau_t)
@@ -52,12 +67,14 @@ initial_dau1 = st.sidebar.number_input(
     "Initial DAU",
     min_value=1,
     value=1000,
+    key="dau1",
 )
 
 initial_new_users1 = st.sidebar.number_input(
     "Initial New Users",
     min_value=1,
     value=200,
+    key="new1",
 )
 
 growth_rate1 = st.sidebar.number_input(
@@ -65,19 +82,25 @@ growth_rate1 = st.sidebar.number_input(
     min_value=0.1,
     value=1.2,
     step=0.1,
+    key="growth1",
 )
 
 retention_rate1 = st.sidebar.slider(
     "Retention Rate",
-    0.0,
-    1.0,
-    0.80,
+    min_value=0.0,
+    max_value=1.0,
+    value=0.80,
+    key="retention1",
 )
 
-days = st.sidebar.number_input(
-    "Number of Days",
-    min_value=2,
-    value=4,
+days = int(
+    st.sidebar.number_input(
+        "Number of Days",
+        min_value=2,
+        value=4,
+        step=1,
+        key="days",
+    )
 )
 
 st.sidebar.markdown("---")
@@ -85,43 +108,52 @@ st.sidebar.markdown("---")
 st.sidebar.header("Scenario 2 (Retention Boost)")
 
 initial_dau2 = st.sidebar.number_input(
-    "Initial DAU ",
+    "Initial DAU",
     min_value=1,
     value=1000,
+    key="dau2",
 )
 
 initial_new_users2 = st.sidebar.number_input(
-    "Initial New Users ",
+    "Initial New Users",
     min_value=1,
     value=200,
+    key="new2",
 )
 
 growth_rate2 = st.sidebar.number_input(
-    "Growth Rate ",
+    "Growth Rate",
     min_value=0.1,
     value=1.2,
     step=0.1,
+    key="growth2",
 )
 
 retention_rate2 = st.sidebar.slider(
-    "Retention Rate ",
-    0.0,
-    1.0,
-    0.80,
+    "Retention Rate",
+    min_value=0.0,
+    max_value=1.0,
+    value=0.80,
+    key="retention2",
 )
 
-retention_boost_day = st.sidebar.number_input(
-    "Retention Boost Day",
-    min_value=2,
-    max_value=days,
-    value=3,
+retention_boost_day = int(
+    st.sidebar.number_input(
+        "Retention Boost Day",
+        min_value=2,
+        max_value=days,
+        value=min(3, days),
+        step=1,
+        key="boost_day",
+    )
 )
 
 boost_amount = st.sidebar.slider(
     "Boost Amount",
-    0.0,
-    1.0,
-    0.10,
+    min_value=0.0,
+    max_value=1.0,
+    value=0.10,
+    key="boost",
 )
 
 # -----------------------------
@@ -143,12 +175,12 @@ if st.button("Run Simulation"):
         growth_rate2,
         retention_rate2,
         days,
-        retention_boost_day - 1,   # Convert to zero-based index
-        boost_amount,
+        retention_boost_day=retention_boost_day - 1,
+        boost_amount=boost_amount,
     )
 
     # -----------------------------
-    # Results Tables
+    # Scenario 1 Table
     # -----------------------------
     st.subheader("Scenario 1 Results")
 
@@ -162,6 +194,9 @@ if st.button("Run Simulation"):
         use_container_width=True,
     )
 
+    # -----------------------------
+    # Scenario 2 Table
+    # -----------------------------
     st.subheader("Scenario 2 Results")
 
     st.dataframe(
@@ -183,20 +218,17 @@ if st.button("Run Simulation"):
 
     fig, ax = plt.subplots(figsize=(10, 6))
 
+    # Scenario 1
     ax.plot(x, dau1, marker="o", label="DAU (Scenario 1)")
     ax.plot(x, new_users1, marker="s", label="New Users (Scenario 1)")
     ax.plot(x, dropouts1, marker="^", label="Dropouts (Scenario 1)")
 
-    ax.plot(
-        x,
-        dau2,
-        marker="o",
-        linestyle="--",
-        linewidth=2,
-        label="DAU (Scenario 2)",
-    )
+    # Scenario 2
+    ax.plot(x, dau2, "--o", linewidth=2, label="DAU (Scenario 2)")
+    ax.plot(x, new_users2, "--s", linewidth=2, label="New Users (Scenario 2)")
+    ax.plot(x, dropouts2, "--^", linewidth=2, label="Dropouts (Scenario 2)")
 
-    ax.set_title("Fitness App User Growth")
+    ax.set_title("Fitness App User Growth Comparison")
     ax.set_xlabel("Day")
     ax.set_ylabel("Users")
     ax.grid(True)
