@@ -1,0 +1,81 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def fitness_app_growth(initial_dau, initial_new_users, growth_rate, retention_rate,
+                       days=4, retention_boost_day=None, boost_amount=0.1):
+
+    dau = [initial_dau]
+    new_users = [initial_new_users]
+    dropouts = [0]  # No dropouts on Day 1
+
+    for t in range(1, days):
+
+        # Apply retention boost if specified
+        current_retention = retention_rate
+        if retention_boost_day is not None and t == retention_boost_day:
+            current_retention = min(1.0, retention_rate + boost_amount)
+
+        # New users (exponential growth)
+        new_users_t = new_users[-1] * growth_rate
+        new_users.append(new_users_t)
+
+        # Retention and dropouts
+        retained = dau[-1] * current_retention
+        dropouts_t = dau[-1] * (1 - current_retention)
+        dau_t = retained + new_users_t
+
+        dau.append(dau_t)
+        dropouts.append(dropouts_t)
+
+    return dau, new_users, dropouts
+
+
+# Scenario 1: No retention boost
+print("--------scenario 1: No retention boost-------- \n")
+dau1, new_users1, dropouts1 = fitness_app_growth(
+    initial_dau=int(input("enter initial DAU:")),
+    initial_new_users=int(input("enter initial new users:")),
+    growth_rate=float(input("enter growrh rate:")),
+    retention_rate=float(input("enter retention rate:")),
+    days=int(input("enter days:")),
+)
+print("\n")
+# Scenario 2: Retention boost on Day 3
+print("--------scenario 2:Retention boost on day 3 --------\n")
+dau2, new_users2, dropouts2 = fitness_app_growth(
+    initial_dau=int(input("enter initial DAU:")),
+    initial_new_users=int(input("enter initial new users:")),
+    growth_rate=float(input("enter growrh rate:")),
+    retention_rate=float(input("enter retention rate:")),
+    days=int(input("enter days:")),
+    retention_boost_day=int(input("enter retantion boost days:")),
+    boost_amount=float(input("enter boost amount:"))
+)
+
+print("Scenario 1 Results:")
+for day in range(4):
+    print(f"Day {day+1}: DAU={dau1[day]:.0f}, "
+          f"New Users={new_users1[day]:.0f}, "
+          f"Dropouts={dropouts1[day]:.0f}")
+
+print("\nScenario 2 Results:")
+for day in range(4):
+    print(f"Day {day+1}: DAU={dau2[day]:.0f}, "
+          f"New Users={new_users2[day]:.0f}, "
+          f"Dropouts={dropouts2[day]:.0f}")
+
+days = list(range(1, 5))
+
+plt.figure(figsize=(10, 6))
+plt.plot(days, dau1, label='DAU (Scenario 1)', marker='o')
+plt.plot(days, new_users1, label='New Users (Scenario 1)', marker='s')
+plt.plot(days, dropouts1, label='Dropouts (Scenario 1)', marker='^')
+
+plt.plot(days, dau2, label='DAU (Scenario 2)', marker='o', linestyle='--')
+
+plt.title('Fitness App User Growth Over 4 Days')
+plt.xlabel('Day')
+plt.ylabel('User Count')
+plt.legend()
+plt.grid(True)
+plt.show()
