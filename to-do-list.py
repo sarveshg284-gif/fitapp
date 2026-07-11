@@ -1,59 +1,114 @@
-import streamlit as st
+from flask import Flask, request, redirect, render_template_string
 
-# Initialize session state
-if "tasks" not in st.session_state:
-    st.session_state.tasks = []
+app = Flask(__name__)
 
-st.set_page_config(page_title="To-Do List", page_icon="📝")
+tasks = []
 
-st.title("📝 TO-DO LIST")
+HTML = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>To-Do List</title>
+    <style>
+        body{
+            font-family:Arial,sans-serif;
+            background:#f4f4f4;
+            margin:40px;
+        }
+        .container{
+            max-width:600px;
+            margin:auto;
+            background:white;
+            padding:20px;
+            border-radius:10px;
+            box-shadow:0 0 10px rgba(0,0,0,.2);
+        }
+        h1{
+            text-align:center;
+        }
+        input{
+            width:75%;
+            padding:10px;
+        }
+        button{
+            padding:10px 15px;
+            background:#007BFF;
+            color:white;
+            border:none;
+            cursor:pointer;
+        }
+        ul{
+            list-style:none;
+            padding:0;
+        }
+        li{
+            background:#eee;
+            margin:10px 0;
+            padding:10px;
+            border-radius:5px;
+            display:flex;
+            justify-content:space-between;
+        }
+        a{
+            text-decoration:none;
+            color:red;
+        }
+    </style>
+</head>
+<body>
 
-# Add Task
-task = st.text_input("Enter a new task")
+<div class="container">
 
-if st.button("➕ Add Task"):
-    if task.strip():
-        st.session_state.tasks.append(
-            {"task": task, "completed": False}
-        )
-        st.success("Task added successfully!")
-    else:
-        st.warning("Please enter a task.")
+<h1>To-Do List</h1>
 
-st.divider()
+<form action="/add" method="POST">
+<input
+type="text"
+name="task"
+placeholder="Enter task"
+required>
 
-st.subheader("Your Tasks")
+<button>Add</button>
+</form>
 
-# Display Tasks
-if st.session_state.tasks:
-    for i, item in enumerate(st.session_state.tasks):
+<ul>
 
-        col1, col2, col3 = st.columns([6, 2, 2])
+{% for task in tasks %}
 
-        with col1:
-            if item["completed"]:
-                st.markdown(f"~~{item['task']}~~ ✅")
-            else:
-                st.write(item["task"])
+<li>
 
-        with col2:
-            if not item["completed"]:
-                if st.button("✔ Complete", key=f"complete{i}"):
-                    st.session_state.tasks[i]["completed"] = True
-                    st.rerun()
+{{task}}
 
-        with col3:
-            if st.button("🗑 Delete", key=f"delete{i}"):
-                st.session_state.tasks.pop(i)
-                st.rerun()
+<a href="/delete/{{loop.index0}}">Delete</a>
 
-else:
-    st.info("No tasks added yet.")
+</li>
 
-st.divider()
+{% endfor %}
 
-# Clear All Tasks
-if st.button("🧹 Clear All Tasks"):
-    st.session_state.tasks.clear()
-    st.success("All tasks cleared!")
-    st.rerun()
+</ul>
+
+</div>
+
+</body>
+</html>
+"""
+
+@app.route("/")
+def home():
+    return render_template_string(HTML, tasks=tasks)
+
+@app.route("/add", methods=["POST"])
+def add():
+    task = request.form.get("task")
+    if task:
+        tasks.append(task)
+    return redirect("/")
+
+@app.route("/delete/<int:index>")
+def delete(index):
+    if 0 <= index < len(tasks):
+        tasks.pop(index)
+    return redirect("/")
+
+if __name__ == "__main__":
+    app.run(debug=True)
