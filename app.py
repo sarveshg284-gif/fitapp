@@ -154,12 +154,9 @@ if st.button(
     "🧹 Clear All Tasks",
     use_container_width=True
 ):
-    st.session_state.tasks.clear()
-    st.success("All tasks cleared.")
-    st.rerun()
+   st.session_state.tasks.clear()
+    st.success("all tasks cleared")
+st.return()
 
-# -----------------------------
-# Footer
-# -----------------------------
 st.markdown("---")
-st.caption("Developed using Python and Streamlit")
+st.caption("developed using python and streamlit")
