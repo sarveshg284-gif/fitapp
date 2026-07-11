@@ -1,111 +1,165 @@
-from flask import Flask, request, redirect, render_template_string
+import streamlit as st
 
-app = Flask(__name__)
+# -----------------------------
+# Page Configuration
+# -----------------------------
+st.set_page_config(
+    page_title="To-Do List",
+    page_icon="📝",
+    layout="centered"
+)
 
-tasks = []
+# -----------------------------
+# Session State
+# -----------------------------
+if "tasks" not in st.session_state:
+    st.session_state.tasks = []
 
-HTML = """
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Python To-Do List</title>
-    <style>
-        body{
-            font-family:Arial, sans-serif;
-            background:#f4f4f4;
-            padding:40px;
-        }
-        .container{
-            max-width:600px;
-            margin:auto;
-            background:white;
-            padding:20px;
-            border-radius:10px;
-            box-shadow:0 0 10px rgba(0,0,0,0.2);
-        }
-        h1{
-            text-align:center;
-            color:#333;
-        }
-        input[type=text]{
-            width:75%;
-            padding:10px;
-            font-size:16px;
-        }
-        button{
-            padding:10px 15px;
-            background:#007BFF;
-            color:white;
-            border:none;
-            cursor:pointer;
-        }
-        button:hover{
-            background:#0056b3;
-        }
-        ul{
-            list-style:none;
-            padding:0;
-            margin-top:20px;
-        }
-        li{
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            padding:10px;
-            margin:8px 0;
-            background:#eeeeee;
-            border-radius:5px;
-        }
-        a{
-            color:red;
-            text-decoration:none;
-            font-weight:bold;
-        }
-    </style>
-</head>
-<body>
+# -----------------------------
+# Functions
+# -----------------------------
+def add_task():
+    task = st.session_state.new_task.strip()
 
-<div class="container">
-    <h1>To-Do List</h1>
-
-    <form action="/add" method="POST">
-        <input type="text" name="task" placeholder="Enter a task" required>
-        <button type="submit">Add</button>
-    </form>
-
-    <ul>
-    {% for task in tasks %}
-        <li>
-            {{ task }}
-            <a href="/delete/{{ loop.index0 }}">Delete</a>
-        </li>
-    {% endfor %}
-    </ul>
-
-</div>
-
-</body>
-</html>
-"""
-
-@app.route("/")
-def home():
-    return render_template_string(HTML, tasks=tasks)
-
-@app.route("/add", methods=["POST"])
-def add():
-    task = request.form.get("task")
     if task:
-        tasks.append(task)
-    return redirect("/")
+        st.session_state.tasks.append(
+            {
+                "task": task,
+                "completed": False
+            }
+        )
+        st.session_state.new_task = ""
+        st.success("Task added successfully!")
+    else:
+        st.warning("Please enter a task.")
 
-@app.route("/delete/<int:index>")
-def delete(index):
-    if 0 <= index < len(tasks):
-        tasks.pop(index)
-    return redirect("/")
 
-# This line is used for local development.
-# Vercel imports the "app" object directly.
-if __name__ == "__main__":
-    app.run(debug=True)
+# -----------------------------
+# Title
+# -----------------------------
+st.title("📝 TO-DO LIST")
+st.write("Manage your daily tasks efficiently.")
+
+st.divider()
+
+# -----------------------------
+# Add Task
+# -----------------------------
+st.subheader("➕ Add New Task")
+
+st.text_input(
+    "Task",
+    key="new_task",
+    placeholder="Enter your task here..."
+)
+
+st.button(
+    "Add Task",
+    on_click=add_task,
+    use_container_width=True
+)
+
+st.divider()
+
+# -----------------------------
+# Display Tasks
+# -----------------------------
+st.subheader("📋 Your Tasks")
+
+if len(st.session_state.tasks) == 0:
+    st.info("No tasks available.")
+else:
+
+    for i, task in enumerate(st.session_state.tasks):
+
+        with st.container():
+
+            col1, col2 = st.columns([7, 3])
+
+            with col1:
+
+                completed = st.checkbox(
+                    task["task"],
+                    value=task["completed"],
+                    key=f"check_{i}"
+                )
+
+                st.session_state.tasks[i]["completed"] = completed
+
+            with col2:
+
+                if st.button("✏ Edit", key=f"edit_{i}"):
+
+                    st.session_state[f"editing_{i}"] = True
+
+                if st.button("🗑 Delete", key=f"delete_{i}"):
+
+                    st.session_state.tasks.pop(i)
+                    st.rerun()
+
+            # Edit Task
+            if st.session_state.get(f"editing_{i}", False):
+
+                updated_task = st.text_input(
+                    "Edit Task",
+                    value=task["task"],
+                    key=f"text_{i}"
+                )
+
+                save_col, cancel_col = st.columns(2)
+
+                with save_col:
+                    if st.button("💾 Save", key=f"save_{i}"):
+
+                        if updated_task.strip():
+
+                            st.session_state.tasks[i]["task"] = updated_task
+
+                        st.session_state[f"editing_{i}"] = False
+                        st.rerun()
+
+                with cancel_col:
+                    if st.button("Cancel", key=f"cancel_{i}"):
+
+                        st.session_state[f"editing_{i}"] = False
+                        st.rerun()
+
+            st.divider()
+
+# -----------------------------
+# Statistics
+# -----------------------------
+if st.session_state.tasks:
+
+    total = len(st.session_state.tasks)
+    completed = sum(task["completed"] for task in st.session_state.tasks)
+    pending = total - completed
+
+    st.subheader("📊 Task Summary")
+
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric("Total", total)
+    col2.metric("Completed", completed)
+    col3.metric("Pending", pending)
+
+    st.progress(completed / total)
+
+# -----------------------------
+# Clear All
+# -----------------------------
+st.divider()
+
+if st.button(
+    "🧹 Clear All Tasks",
+    use_container_width=True
+):
+    st.session_state.tasks.clear()
+    st.success("All tasks cleared.")
+    st.rerun()
+
+# -----------------------------
+# Footer
+# -----------------------------
+st.markdown("---")
+st.caption("Developed using Python and Streamlit")
