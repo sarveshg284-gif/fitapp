@@ -156,7 +156,7 @@ if st.button(
 ):
    st.session_state.tasks.clear()
    st.success("all tasks cleared")
-st.return()
+   st.return()
 
-st.markdown("---")
-st.caption("developed using python and streamlit")
+   st.markdown("---")
+   st.caption("developed using python and streamlit")
