@@ -69,7 +69,6 @@ st.subheader("📋 Your Tasks")
 if len(st.session_state.tasks) == 0:
     st.info("No tasks available.")
 else:
-
     for i, task in enumerate(st.session_state.tasks):
 
         with st.container():
@@ -77,7 +76,6 @@ else:
             col1, col2 = st.columns([7, 3])
 
             with col1:
-
                 completed = st.checkbox(
                     task["task"],
                     value=task["completed"],
@@ -87,17 +85,16 @@ else:
                 st.session_state.tasks[i]["completed"] = completed
 
             with col2:
-
                 if st.button("✏ Edit", key=f"edit_{i}"):
-
                     st.session_state[f"editing_{i}"] = True
 
                 if st.button("🗑 Delete", key=f"delete_{i}"):
-
                     st.session_state.tasks.pop(i)
                     st.rerun()
 
+            # -----------------------------
             # Edit Task
+            # -----------------------------
             if st.session_state.get(f"editing_{i}", False):
 
                 updated_task = st.text_input(
@@ -112,8 +109,7 @@ else:
                     if st.button("💾 Save", key=f"save_{i}"):
 
                         if updated_task.strip():
-
-                            st.session_state.tasks[i]["task"] = updated_task
+                            st.session_state.tasks[i]["task"] = updated_task.strip()
 
                         st.session_state[f"editing_{i}"] = False
                         st.rerun()
@@ -146,7 +142,7 @@ if st.session_state.tasks:
     st.progress(completed / total)
 
 # -----------------------------
-# Clear All
+# Clear All Tasks
 # -----------------------------
 st.divider()
 
@@ -154,9 +150,18 @@ if st.button(
     "🧹 Clear All Tasks",
     use_container_width=True
 ):
-   st.session_state.tasks.clear()
-   st.success("all tasks cleared")
-   st.return()
+    st.session_state.tasks.clear()
 
-   st.markdown("---")
-   st.caption("developed using python and streamlit")
+    # Remove editing flags
+    for key in list(st.session_state.keys()):
+        if key.startswith("editing_"):
+            del st.session_state[key]
+
+    st.success("All tasks cleared successfully!")
+    st.rerun()
+
+# -----------------------------
+# Footer
+# -----------------------------
+st.markdown("---")
+st.caption("Developed using Python 🐍 and Streamlit 🚀")
