@@ -155,7 +155,7 @@ if st.button(
     use_container_width=True
 ):
    st.session_state.tasks.clear()
-    st.success("all tasks cleared")
+   st.success("all tasks cleared")
 st.return()
 
 st.markdown("---")
