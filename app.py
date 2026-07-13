@@ -157,12 +157,18 @@ if st.button(
 
     #remove editing flags
 
-    for key in likst(st.session_stste.keys()):
-        if key.starwith("editing_"):
-            del st.sessions_state[key]
+    for key in list(st.session_state.keys()):
+        if key.startswith("editing_"):
+            del st.session_state[key]
 
-st.success("all tasks cleared successfully")
-st.return()
+    st.success("All tasks cleared successfully!")
+    st.rerun()
+
+# -----------------------------
+# Footer
+# -----------------------------
+st.markdown("---")
+st.caption("Developed using Python 🐍 and Streamlit 🚀")
 
 
     
