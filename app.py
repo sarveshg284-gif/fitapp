@@ -1,3 +1,6 @@
+#codesoft
+#internship
+
 import streamlit as st
 
 # -----------------------------
@@ -152,16 +155,14 @@ if st.button(
 ):
     st.session_state.tasks.clear()
 
-    # Remove editing flags
-    for key in list(st.session_state.keys()):
-        if key.startswith("editing_"):
-            del st.session_state[key]
+    #remove editing flags
 
-    st.success("All tasks cleared successfully!")
-    st.rerun()
+    for key in likst(st.session_stste.keys()):
+        if key.starwith("editing_"):
+            del st.sessions_state[key]
 
-# -----------------------------
-# Footer
-# -----------------------------
-st.markdown("---")
-st.caption("Developed using Python 🐍 and Streamlit 🚀")
+st.success("all tasks cleared successfully")
+st.return()
+
+
+    
